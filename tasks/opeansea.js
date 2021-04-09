@@ -1,25 +1,20 @@
 const openasea = require('../crawlers/opeansea');
-const mm = require('moment');
 const { getDetailByID } = require('../crawlers/opeansea');
-const { readCSV, writeCSV } = require('./util');
-const fs = require('fs');
+const { readCSV, writeCSV, parseTime, shouldAppend, transformData } = require('./util');
 
 const formatMoney = (money, decimal) => {
     money /= Math.pow(10, decimal);
     return money;
 };
 
-const parseTime = (inputDate) => {
-    return mm(inputDate).format('DD/MM/YYYY')
-};
 
 const buildSubData = (items, currentRecordIds) => {
     const currentDate = Date.now();
     const newDataList = [];
     items.forEach((item) => {
         const { node } = item;
-        console.log(node.id);
-        if (!currentRecordIds[node.id]) {
+        const isLatest = parseTime(node.eventTimestamp) === parseTime(currentDate);
+        if (!currentRecordIds[node.id] && isLatest) {
             newDataList.push(node);
         }
     });
@@ -57,16 +52,7 @@ const buildAndProcessData = async (filePath, listUsername, pageSize = 10) => {
     })
 }
 
-const transformData = async (inputData) => {
-    return inputData.reduce((recordIds, currentItem) => {
-        recordIds[currentItem.Id] = true;
-        return recordIds
-    }, {});
-}
 
-const shouldAppend = (filePath) => {
-    return fs.existsSync(filePath);
-}
 
 const processData = async (destination, dataList) => {
     const dataToWrite = [];

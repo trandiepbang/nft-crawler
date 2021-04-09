@@ -1,6 +1,23 @@
 const csv = require('csv-parser');
 const csvWriters = require('csv-writer');
 const fs = require('fs');
+const mm = require('moment');
+
+const parseTime = (inputDate) => {
+    return mm(inputDate).local().format('DD/MM/YYYY')
+};
+
+const transformData = async (inputData) => {
+    return inputData.reduce((recordIds, currentItem) => {
+        recordIds[currentItem.Id] = true;
+        return recordIds
+    }, {});
+}
+
+
+const shouldAppend = (filePath) => {
+    return fs.existsSync(filePath);
+}
 
 const readCSV = (fileName) => {
     if (!fs.existsSync(fileName)) {
@@ -22,6 +39,7 @@ const readCSV = (fileName) => {
 }
 
 const writeCSV = (fileName, headers, records, shouldAppend) => {
+    if (!records) return;
     const createCsvWriter = csvWriters.createObjectCsvWriter;
     const csvWriter = createCsvWriter({
         path: fileName,
@@ -36,5 +54,8 @@ const writeCSV = (fileName, headers, records, shouldAppend) => {
 
 module.exports = {
     writeCSV,
-    readCSV
+    parseTime,
+    readCSV,
+    transformData,
+    shouldAppend
 }
