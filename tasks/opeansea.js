@@ -14,7 +14,7 @@ const buildSubData = (items, currentRecordIds) => {
     items.forEach((item) => {
         const { node } = item;
         const isLatest = parseTime(node.eventTimestamp) === parseTime(currentDate);
-        if (!currentRecordIds[node.id] && isLatest) {
+        if (!currentRecordIds[node.id]) {
             newDataList.push(node);
         }
     });
@@ -42,7 +42,7 @@ const buildAndProcessData = async (filePath, listUsername, pageSize = 10) => {
             if (!hasNextPage) {
                 if (dataList.length > 0) {
                     console.log('New data to ready insert ', dataList.length);
-                    processData(filePath, dataList);
+                    processData(filePath, dataList, username);
                 } else {
                     console.log('Nothing new to insert');
                 }
@@ -54,9 +54,10 @@ const buildAndProcessData = async (filePath, listUsername, pageSize = 10) => {
 
 
 
-const processData = async (destination, dataList) => {
+const processData = async (destination, dataList, username) => {
     const dataToWrite = [];
-    dataList.forEach(async (node, index) => {
+    console.log("Processing data ...");
+    dataList.forEach(async (node, index, totalList) => {
         setTimeout(async function () {
             const { id, eventType, eventTimestamp, price, fromAccount, toAccount, assetQuantity: { asset: { name, collection, assetContract, tokenId } } } = node;
             const platform = collection.name;
@@ -69,6 +70,7 @@ const processData = async (destination, dataList) => {
             const creator = assetDetail.creator.user && assetDetail.creator.user.username;
             dataToWrite.push({
                 id,
+                username,
                 eventType,
                 priceInUsd,
                 priceInEuth,
@@ -80,9 +82,11 @@ const processData = async (destination, dataList) => {
                 itemName: name,
             });
 
-            if (dataToWrite.length === dataList.length) {
+            if (index >= totalList.length - 1) {
+                console.log("Finished");
                 writeCSV(destination, [
                     { id: 'id', title: 'Id' },
+                    { id: 'username', title: 'Username' },
                     { id: 'eventType', title: 'Event Type' },
                     { id: 'platform', title: 'Platform' },
                     { id: 'itemName', title: 'Item' },

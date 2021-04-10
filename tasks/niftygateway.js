@@ -17,14 +17,14 @@ const buildAndProcessData = async (filePath, listUsername) => {
                 });
 
                 if (saleEvents.length > 0) {
-                    await convertDataToWrite(saleEvents, tokenItem, currentRecordIds, filePath);
+                    await convertDataToWrite(saleEvents, tokenItem, currentRecordIds, filePath, username);
                 }
             }
         });
     });
 }
 
-const convertDataToWrite = (saleEvents, tokenItem, currentRecordIds, filePath) => {
+const convertDataToWrite = (saleEvents, tokenItem, currentRecordIds, filePath, username) => {
     const { name, creator_info } = tokenItem;
     return saleEvents.forEach((item) => {
         const { SellingUserProfile, PurchasingUserProfile, Timestamp, id } = item;
@@ -39,6 +39,7 @@ const convertDataToWrite = (saleEvents, tokenItem, currentRecordIds, filePath) =
 
             const dataToAppend = [{
                 id,
+                username,
                 eventType,
                 priceInUsd,
                 priceInEuth,
@@ -52,6 +53,7 @@ const convertDataToWrite = (saleEvents, tokenItem, currentRecordIds, filePath) =
             
             writeCSV(filePath, [
                 { id: 'id', title: 'Id' },
+                { id: 'username', title: 'Username'},
                 { id: 'eventType', title: 'Event Type' },
                 { id: 'platform', title: 'Platform' },
                 { id: 'itemName', title: 'Item' },
