@@ -14,7 +14,7 @@ const buildSubData = (items, currentRecordIds) => {
     items.forEach((item) => {
         const { node } = item;
         const isLatest = parseTime(node.eventTimestamp) === parseTime(currentDate);
-        if (!currentRecordIds[node.id]) {
+        if (!currentRecordIds[node.id] && node.eventType === 'SUCCESSFUL') {
             newDataList.push(node);
         }
     });
