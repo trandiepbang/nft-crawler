@@ -49,7 +49,7 @@ const writeCSV = (fileName, headers, records, shouldAppend) => {
 
     csvWriter
         .writeRecords(records)
-        .then(() => console.log('The CSV file was written successfully'));
+        .then(() => console.log('Writing ...'));
 }
 
 module.exports = {
