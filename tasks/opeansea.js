@@ -59,28 +59,34 @@ const processData = async (destination, dataList, username) => {
     console.log("Processing data ...");
     dataList.forEach(async (node, index, totalList) => {
         setTimeout(async function () {
-            const { id, eventType, eventTimestamp, price, fromAccount, toAccount, assetQuantity: { asset: { name, collection, assetContract, tokenId } } } = node;
-            const platform = collection.name;
-            const priceInEuth = formatMoney(price && price.quantity, price && price.asset && price.asset.decimals);
-            const priceInUsd = price && price.asset && price.asset.usdSpotPrice;
-            const fromAccountUsername = fromAccount && fromAccount.user && fromAccount.user.publicUsername;
-            const toAccountAddressID = toAccount && toAccount.address;
-            const assetAccountID = assetContract.account.address;
-            const assetDetail = await getDetailByID(assetAccountID, tokenId);
-            const creator = assetDetail.creator.user && assetDetail.creator.user.username;
-            dataToWrite.push({
-                id,
-                username,
-                eventType,
-                priceInUsd,
-                priceInEuth,
-                creator,
-                platform,
-                fromUser: fromAccountUsername,
-                toUser: toAccountAddressID,
-                date: parseTime(eventTimestamp),
-                itemName: name,
-            });
+            if (node.eventType === 'SUCCESSFUL') {
+                const { id, eventType, eventTimestamp, price, assetQuantity: { asset: { name, collection, assetContract, tokenId } } } = node;
+                const platform = collection.name;
+                const priceInEuth = formatMoney(price && price.quantity, price && price.asset && price.asset.decimals);
+                const priceInUsd = price && price.asset && price.asset.usdSpotPrice;
+                const assetAccountID = assetContract.account.address;
+                const assetDetail = await getDetailByID(assetAccountID, tokenId);
+                const creator = assetDetail.creator.user && assetDetail.creator.user.username;
+                //
+                const fromUserAddress = node.seller && node.seller.address;
+                const fromUser = node.seller && node.seller.user ? node.seller.user.publicUsername : fromUserAddress;
+                //
+                const toUserAddress = node.winnerAccount && node.winnerAccount.address;
+                const toUser = node.winnerAccount && node.winnerAccount.user ? node.winnerAccount.user.publicUsername : toUserAddress
+                dataToWrite.push({
+                    id,
+                    username,
+                    eventType,
+                    priceInUsd,
+                    priceInEuth,
+                    creator,
+                    platform,
+                    fromUser: fromUser,
+                    toUser: toUser,
+                    date: parseTime(eventTimestamp),
+                    itemName: name,
+                });
+            }
 
             if (index >= totalList.length - 1) {
                 console.log("Finished");
@@ -98,7 +104,6 @@ const processData = async (destination, dataList, username) => {
                     { id: 'creator', title: 'Original Creator' },
                 ], dataToWrite, shouldAppend(destination));
             }
-
         }, 1500 * index);
     });
 }
