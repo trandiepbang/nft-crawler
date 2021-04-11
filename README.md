@@ -12,3 +12,4 @@ Then you will see 3 file export in side dictory for OpenSea, NiftyGateway, Maker
 
 
 # Demo
+https://www.youtube.com/watch?v=FTpQs9fXEtw
