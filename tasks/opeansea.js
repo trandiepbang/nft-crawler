@@ -60,32 +60,37 @@ const processData = async (destination, dataList, username) => {
     dataList.forEach(async (node, index, totalList) => {
         setTimeout(async function () {
             if (node.eventType === 'SUCCESSFUL') {
-                const { id, eventType, eventTimestamp, price, assetQuantity: { asset: { name, collection, assetContract, tokenId } } } = node;
-                const platform = collection.name;
-                const priceInEuth = formatMoney(price && price.quantity, price && price.asset && price.asset.decimals);
-                const priceInUsd = price && price.asset && price.asset.usdSpotPrice;
-                const assetAccountID = assetContract.account.address;
-                const assetDetail = await getDetailByID(assetAccountID, tokenId);
-                const creator = assetDetail.creator.user && assetDetail.creator.user.username;
-                //
-                const fromUserAddress = node.seller && node.seller.address;
-                const fromUser = node.seller && node.seller.user ? node.seller.user.publicUsername : fromUserAddress;
-                //
-                const toUserAddress = node.winnerAccount && node.winnerAccount.address;
-                const toUser = node.winnerAccount && node.winnerAccount.user ? node.winnerAccount.user.publicUsername : toUserAddress
-                dataToWrite.push({
-                    id,
-                    username,
-                    eventType,
-                    priceInUsd,
-                    priceInEuth,
-                    creator,
-                    platform,
-                    fromUser: fromUser,
-                    toUser: toUser,
-                    date: parseTime(eventTimestamp),
-                    itemName: name,
-                });
+                try {
+                    const { id, eventType, eventTimestamp, price, assetQuantity: { asset: { name, collection, assetContract, tokenId } } } = node;
+                    const platform = collection.name;
+                    const priceInEuth = formatMoney(price && price.quantity, price && price.asset && price.asset.decimals);
+                    const priceInUsd = price && price.asset && price.asset.usdSpotPrice;
+                    const assetAccountID = assetContract.account.address;
+                    const assetDetail = await getDetailByID(assetAccountID, tokenId);
+                    const creator = assetDetail.creator.user ? assetDetail.creator.user.username : assetDetail.creator.address;
+                    //
+                    const fromUserAddress = node.seller && node.seller.address;
+                    const fromUser = node.seller && node.seller.user ? node.seller.user.publicUsername : fromUserAddress;
+                    //
+                    const toUserAddress = node.winnerAccount && node.winnerAccount.address;
+                    const toUser = node.winnerAccount && node.winnerAccount.user ? node.winnerAccount.user.publicUsername : toUserAddress
+                    dataToWrite.push({
+                        id,
+                        username,
+                        eventType: 'Sale',
+                        priceInUsd,
+                        priceInEuth,
+                        creator,
+                        platform,
+                        fromUser: fromUser,
+                        toUser: toUser,
+                        date: parseTime(eventTimestamp),
+                        itemName: name,
+                    });
+                } catch (e) {
+                    console.log("Error ", e);
+                }
+                
             }
 
             if (index >= totalList.length - 1) {
