@@ -57,7 +57,10 @@ const extractDataFromHtml = async (username, htmlDetail, productWrapperElement) 
 }
 
 const buildAndProcessData = async (filePath, listUsername) => {
-    fs.unlinkSync(filePath);
+    // Remomove file and recreate again
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
     listUsername.forEach(async (username) => {
         let page = 1;
         while(true) {

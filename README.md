@@ -19,3 +19,5 @@ Then you will see 3 file export in side dictory for OpenSea, NiftyGateway, Maker
 https://www.youtube.com/watch?v=FTpQs9fXEtw
 
 
+# How To Run with docker
+- Run the run.sh script by typing "./run.sh" in terminal

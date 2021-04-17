@@ -1,0 +1,26 @@
+{
+  "name": "nfg-crawler",
+  "version": "1.0.0",
+  "description": "- Install NodeJS v12.19.0 via https://nodejs.org/uk/blog/release/v12.19.0/ - Run command \"npm install\" to install all necessary module for the script - Run command \"node index.js\" to start crawler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trandiepbang/nft-crawler.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/trandiepbang/nft-crawler/issues"
+  },
+  "homepage": "https://github.com/trandiepbang/nft-crawler#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.6",
+    "csv-parser": "^3.0.0",
+    "csv-writer": "^1.6.0",
+    "moment": "^2.29.1",
+    "node-fetch": "^2.6.1"
+  }
+}
