@@ -1,7 +1,8 @@
 
 const { fetchData, getProductDetai } = require('../crawlers/makerplace');
-const { readCSV, writeCSV, parseTime, shouldAppend, transformData } = require('./util');
+const { writeCSV, shouldAppend } = require('./util');
 const cheerio = require('cheerio');
+const fs = require('fs');
 
 const extractDataFromResponse = async (response, username, filePath) => {
     const $ = cheerio.load(response);
@@ -56,6 +57,7 @@ const extractDataFromHtml = async (username, htmlDetail, productWrapperElement) 
 }
 
 const buildAndProcessData = async (filePath, listUsername) => {
+    fs.unlinkSync(filePath);
     listUsername.forEach(async (username) => {
         let page = 1;
         while(true) {
