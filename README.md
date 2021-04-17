@@ -21,3 +21,9 @@ https://www.youtube.com/watch?v=FTpQs9fXEtw
 
 # How To Run with docker
 - Run the run.sh script by typing "./run.sh" in terminal
+- Note :
+  I'm not sure if Window can excute .sh script, if cannot you just copy paste command below into terminal and execute it.
+  ```bash
+  docker build -t niftycrawler:v1 .
+  docker run --mount type=bind,source="$(pwd)",target=/usr/src/app/data niftycrawler:v1
+  ```
