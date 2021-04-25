@@ -9,5 +9,5 @@ if (!fs.existsSync(config.data)) {
 }
 
 opeansea.buildAndProcessData(path.join(config.data, '/opeansea.csv'), config.username.opensea, 100);
-nitfygateway.buildAndProcessData(path.join(config.data,'/niftygateway.csv'), config.username.niftygateway);
+nitfygateway.buildAndProcessData(path.join(config.data, '/niftygateway.csv'), path.join(config.data, '/niftygateway_globalusers.csv'), config.username.niftygateway);
 makerplace.buildAndProcessData(path.join(config.data, "/makerplace.csv"), config.username.makerplace);

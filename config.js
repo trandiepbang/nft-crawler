@@ -3,7 +3,7 @@ const config = {
     username: {
         opensea: ["itsheyjeli"],
         makerplace: ["itsheyjeli"],
-        niftygateway: ["itsheyjeli"],
+        niftygateway: ["summersrain"],
     }
 }
 
