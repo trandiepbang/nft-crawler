@@ -75,8 +75,8 @@ const buildAndProcessData = async (filePath, filePathGlobalUser, listUsername) =
                 if (index >= totalList.length - 1) {
                     console.log("Starting to fetch global users");
                     // Remomove file and recreate again
-                    if (fs.existsSync(globalUserFilePath)) {
-                        fs.unlinkSync(globalUserFilePath);
+                    if (fs.existsSync(filePathGlobalUser)) {
+                        fs.unlinkSync(filePathGlobalUser);
                     }
                     fetchAndSaveGlobalUser(contractAddressList, filePathGlobalUser);
                 }
