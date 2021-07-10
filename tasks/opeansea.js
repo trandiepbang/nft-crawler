@@ -1,5 +1,6 @@
+const _ = require("lodash");
 const openasea = require('../crawlers/opeansea');
-const { getDetailByID } = require('../crawlers/opeansea');
+const { getDetailByID, getDataByUsername, getTradingHistoryByAsset } = require('../crawlers/opeansea');
 const { readCSV, writeCSV, parseTime, shouldAppend, transformData } = require('./util');
 
 const formatMoney = (money, decimal) => {
@@ -52,8 +53,6 @@ const buildAndProcessData = async (filePath, listUsername, pageSize = 10) => {
     })
 }
 
-
-
 const processData = async (destination, dataList, username) => {
     const dataToWrite = [];
     console.log("Processing data ...");
@@ -90,7 +89,7 @@ const processData = async (destination, dataList, username) => {
                 } catch (e) {
                     console.log("Error ", e);
                 }
-                
+
             }
 
             if (index >= totalList.length - 1) {
@@ -113,6 +112,132 @@ const processData = async (destination, dataList, username) => {
     });
 }
 
+const getCreator = (assetDetail) => {
+    const username = _.get(assetDetail, 'creator.user.username', null);
+    const address = _.get(assetDetail, 'creator.address', null);
+    if (!username) {
+        return address;
+    }
+    return username;
+}
+
+const getTradingHistory = async (assetAddress, tokenId, currentRecordIds) => {
+    let hasMore = false;
+    let cursor = null;
+    let data = [];
+    hasMore = true;
+    while (hasMore) {
+        const historyEvent = await getTradingHistoryByAsset(assetAddress, tokenId, cursor, 30);
+        const edges = _.get(historyEvent, "data.assetEvents.edges", []);
+        for (let i = 0; i < edges.length; i++) {
+            const edge = edges[i];
+            const node = _.get(edge, "node");
+            const eventType = _.get(node, "eventType");
+            const price = _.get(node, "price")
+            const priceQuantity = _.get(price, "quantity");
+            const priceDecimals = _.get(price, "asset.decimals");
+            const priceInEuth = formatMoney(priceQuantity, priceDecimals);
+            const eventTimestamp = _.get(node, "eventTimestamp");
+            const id = _.get(node, "id");
+            const date = parseTime(eventTimestamp);
+            if (eventType === 'SUCCESSFUL' && !currentRecordIds[id]) {
+                data = [
+                    ...data,
+                    {
+                        id,
+                        priceInEuth,
+                        date
+                    }
+                ]
+            }
+        }
+        cursor = _.get(data, "data.search.pageInfo.endCursor", null);
+        hasMore = _.get(data, "data.search.pageInfo.hasNextPage", false);
+    }
+
+    return data;
+}
+
+const getAsset = async (username, currentRecordIds) => {
+    let listData = [];
+    let hasNext = false;
+    let cursor = null;
+    hasNext = true;
+    while (hasNext) {
+        const data = await getDataByUsername(username, cursor, 30);
+        const edges = _.get(data, "data.query.search.edges", []);
+        for (let i = 0; i < edges.length; i++) {
+            const node = edges[i];
+            const asset = _.get(node, "node.asset");
+            const name = _.get(asset, "name");
+            const collectionName = _.get(asset, "collection.name");
+            const tokenID = _.get(asset, "tokenId");
+            const assetAccountID = _.get(asset, "assetContract.account.address");
+            const assetDetail = await getDetailByID(assetAccountID, tokenID);
+            const creator = await getCreator(assetDetail);
+            const saleEvents = await getTradingHistory(assetAccountID, tokenID, currentRecordIds);
+            listData = [
+                ...listData,
+                {
+                    name,
+                    collectionName,
+                    creator,
+                    saleEvents
+                }
+            ]
+        }
+        cursor = _.get(data, "data.search.pageInfo.endCursor", null);
+        hasNext = _.get(data, "data.search.pageInfo.hasNextPage", false);
+    }
+
+    return listData;
+}
+
+const writeToFile = (destination, assets) => {
+    const dataReadyToWrite = assets.reduce((totalAssets, asset) => {
+        const { name, collectionName, creator, saleEvents } = asset;
+        saleEvents.forEach((saleEvent) => {
+            totalAssets = [
+                ...totalAssets,
+                {
+                    id: saleEvent.id,
+                    name,
+                    platform: collectionName,
+                    purchase: saleEvent.priceInEuth,
+                    date: saleEvent.date,
+                    creator
+                }
+            ]
+        });
+
+        return totalAssets;
+    }, []);
+
+    if (dataReadyToWrite.length > 0) {
+        console.log("Finished, start writting to file", dataReadyToWrite.length);
+        writeCSV(destination, [
+            { id: 'id', title: 'Id' },
+            { id: 'name', title: 'Asset Name' },
+            { id: 'platform', title: 'Platform' },
+            { id: 'purchase', title: 'Orig. Purchase' },
+            { id: 'date', title: 'Date' },
+            { id: 'creator', title: 'Orginal Creator' }
+        ], dataReadyToWrite, shouldAppend(destination));
+    }
+}
+
+const getUserAssetsAndTradingHistory = async (destination, listUsername) => {
+    const currentData = await readCSV(destination);
+    const currentRecordIds = await transformData(currentData);
+    for (let i = 0; i < listUsername.length; i++) {
+        const assets = await getAsset(listUsername[i], currentRecordIds);
+        if (assets.length > 0) {
+            writeToFile(destination, assets);
+        }
+    }
+}
+
 module.exports = {
     buildAndProcessData,
+    getUserAssetsAndTradingHistory
 }
